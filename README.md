@@ -13,5 +13,5 @@ az deployment group create --resource-group ResourceGroupName --template-file ma
 To update azure code:
 
 ```bash
-az deployment group create --resource-group ResourceGroupName --template-file main.bicep
+az deployment group create --resource-group ResourceGroupName --template-file main.bicep --mode complete
 ```

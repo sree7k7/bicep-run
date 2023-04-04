@@ -66,8 +66,6 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   }
 }
 
-output hostname string = publicIPAddress.id
-
 // ----- nic ------
 resource networkInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = [for i in range(0, numberOfInstances): {
   name: '${networkInterfaceName}${i}'
@@ -134,12 +132,65 @@ resource vmextension 'Microsoft.Compute/virtualMachines/runCommands@2022-03-01' 
   properties: {
     source: {
       script: '''
-        Install-WindowsFeature -name Web-Server -IncludeManagementTools
-        Remove-Item C:\\inetpub\\wwwroot\\iisstart.htm
-        Add-Content -Path "C:\\inetpub\\wwwroot\\iisstart.htm" -Value $("Hello from " + $env:computername)  
+        Add-WindowsFeature Web-Server
+        Set-Content -Path "C:\inetpub\wwwroot\Default.html" -Value "This is the server $($env:computername) !"
+        New-NetFirewallRule –DisplayName "Allow ICMPv4-In" –Protocol ICMPv4
       '''
     }
   }
 }]
 
 
+@description('Name of Azure Bastion resource')
+param bastionHostName string = 'AzureBastionHost'
+
+var publicIpAddressName = '${bastionHostName}-pip'
+
+var bastionSubnetName = 'AzureBastionSubnet'
+
+@description('Bastion subnet IP prefix MUST be within vnet IP prefix address space')
+param bastionSubnetIpPrefix string = '10.2.4.0/26'
+
+resource bastionsubnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' = {
+  parent: virtualNetwork
+  name: bastionSubnetName
+  properties: {
+    addressPrefix: bastionSubnetIpPrefix
+  }
+}
+
+resource publicIp 'Microsoft.Network/publicIPAddresses@2022-01-01' = {
+  name: publicIpAddressName
+  location: location
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAllocationMethod: 'Static'
+  }
+}
+
+resource bastionHost 'Microsoft.Network/bastionHosts@2022-01-01' = {
+  name: bastionHostName
+  location: location
+  dependsOn: [
+    virtualNetwork
+  ]
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'IpConf'
+        properties: {
+          subnet: {
+            id: bastionsubnet.id
+          }
+          publicIPAddress: {
+            id: publicIp.id
+          }
+        }
+      }
+    ]
+  }
+}
+
+output PublicIPVM string = publicIPAddress.name
