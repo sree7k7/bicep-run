@@ -66,6 +66,8 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   }
 }
 
+output hostname string = publicIPAddress.id
+
 // ----- nic ------
 resource networkInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = [for i in range(0, numberOfInstances): {
   name: '${networkInterfaceName}${i}'
@@ -139,3 +141,5 @@ resource vmextension 'Microsoft.Compute/virtualMachines/runCommands@2022-03-01' 
     }
   }
 }]
+
+

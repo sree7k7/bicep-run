@@ -9,3 +9,9 @@ vnet, subnets, vm, vm - extension, nsg
 az group create --name ResourceGroupName --location eastus
 az deployment group create --resource-group ResourceGroupName --template-file main.bicep
 ```
+
+To update azure code:
+
+```bash
+az deployment group create --resource-group ResourceGroupName --template-file main.bicep
+```
