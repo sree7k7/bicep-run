@@ -1,6 +1,10 @@
+@description('Resource ID of the virtual network')
+// param virtualNetworkId string
+
+param virtualNetworkName string
 
 @description('Location for all resources.')
-param location string = resourceGroup().location
+param location string = 'northeurope'
 
 @description('Prefix to use for VM names')
 param vmNamePrefix string = 'BackendVM'
@@ -15,42 +19,10 @@ param adminUsername string = 'demousr'
 @secure()
 param adminPassword string = 'Password@123'
 
-var virtualNetworkName = 'vNet'
-var frontendSubent = 'frontendSubnet'
-var backendSubnet = 'backendSubnet'
-
 var networkInterfaceName = 'nic'
-var numberOfInstances = 1
-var subnetRef = resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, frontendSubent)
-
-// ----- vnet subnets-------
-
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-05-01' = {
-  name: virtualNetworkName
-  location: location
-  properties: {
-    addressSpace: {
-      addressPrefixes: [
-        '10.2.0.0/16'
-      ]
-    }
-    subnets: [
-      {
-        name: frontendSubent
- properties: {
-          addressPrefix: '10.2.2.0/24'
-        }
-      }
-      {
-        name: backendSubnet
-        properties: {
-          addressPrefix: '10.2.3.0/24'
-        }
-      }
-    ]
-  }
-}
-
+param numberOfInstances int = 1
+param subnetRef string
+// var subnetRef = resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, frontendSubnet)
 // --- nsg ----
 
 resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2022-05-01' = {
@@ -90,8 +62,8 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2022-05-0
 
 // ------vm public ip --------
 
-resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
-  name: 'publicIPAddressName'
+resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2021-05-01' = [for i in range(0, numberOfInstances): {
+  name: 'publicIPAddressName-${i}'
   location: location
   sku: {
     name: 'Basic'
@@ -101,7 +73,7 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
     publicIPAddressVersion: 'IPv4'
     idleTimeoutInMinutes: 4
   }
-}
+}]
 
 // ----- nic ------
 resource networkInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = [for i in range(0, numberOfInstances): {
@@ -114,7 +86,7 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = [fo
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           publicIPAddress: {
-            id: publicIPAddress.id
+            id: publicIPAddress[i].id
           }
           subnet: {
             id: subnetRef
@@ -125,12 +97,12 @@ resource networkInterface 'Microsoft.Network/networkInterfaces@2021-05-01' = [fo
     ]
   }
   dependsOn: [
-    virtualNetwork
+    
   ]
 }]
 
 resource vm 'Microsoft.Compute/virtualMachines@2022-11-01' = [for i in range(0, numberOfInstances): {
-  name: '${vmNamePrefix}${i}'
+  name: '${vmNamePrefix}_vm${i}'
   location: location
   properties: {
     hardwareProfile: {
@@ -177,57 +149,3 @@ resource vmextension 'Microsoft.Compute/virtualMachines/runCommands@2022-03-01' 
   }
 }]
 
-
-@description('Name of Azure Bastion resource')
-param bastionHostName string = 'AzureBastionHost'
-
-var publicIpAddressName = '${bastionHostName}-pip'
-
-var bastionSubnetName = 'AzureBastionSubnet'
-
-@description('Bastion subnet IP prefix MUST be within vnet IP prefix address space')
-param bastionSubnetIpPrefix string = '10.2.4.0/26'
-
-resource bastionsubnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' = {
-  parent: virtualNetwork
-  name: bastionSubnetName
-  properties: {
-    addressPrefix: bastionSubnetIpPrefix
-  }
-}
-
-resource publicIp 'Microsoft.Network/publicIPAddresses@2022-01-01' = {
-  name: publicIpAddressName
-  location: location
-  sku: {
-    name: 'Standard'
-  }
-  properties: {
-    publicIPAllocationMethod: 'Static'
-  }
-}
-
-resource bastionHost 'Microsoft.Network/bastionHosts@2022-01-01' = {
-  name: bastionHostName
-  location: location
-  dependsOn: [
-    virtualNetwork
-  ]
-  properties: {
-    ipConfigurations: [
-      {
-        name: 'IpConf'
-        properties: {
-          subnet: {
-            id: bastionsubnet.id
-          }
-          publicIPAddress: {
-            id: publicIp.id
-          }
-        }
-      }
-    ]
-  }
-}
-
-output PublicIPVM string = publicIPAddress.name

@@ -22,3 +22,9 @@ az deployment group create --resource-group ResourceGroupName --template-file ma
 ```
 ---
 [![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/)
+
+Confirm the changes:
+```
+az deployment group create --resource-group ResourceGroupName --template-file main.bicep --confirm-with-what-if --mode complete
+
+```
