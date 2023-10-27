@@ -43,7 +43,8 @@ Copy
 bicep generate-params main.bicep --output-format bicepparam --include-params all
 The command creates a Bicep parameters file named main.bicepparam. The parameter file contains all parameters in the Bicep file, whether configured with default values or not.
 
-Azure CLI
+
+**Azure CLI**
 
 Copy
 bicep generate-params main.bicep --outfile main.parameters.json
