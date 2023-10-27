@@ -28,3 +28,7 @@ Confirm the changes:
 az deployment group create --resource-group ResourceGroupName --template-file main.bicep --confirm-with-what-if --mode complete
 
 ```
+
+```
+az deployment sub create -f ./bicep/main.bicep -l westeurope --parameters ./bicep/parameters/applicationRules.parameters.json ./bicep/parameters/bastion.parameters.json ./bicep/parameters/hubGlobal.parameters.json ./bicep/parameters/*
+```

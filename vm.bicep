@@ -1,7 +1,7 @@
-@description('Resource ID of the virtual network')
+// @description('Resource ID of the virtual network')
 // param virtualNetworkId string
 
-param virtualNetworkName string
+// param virtualNetworkName string
 
 @description('Location for all resources.')
 param location string = 'northeurope'
@@ -15,8 +15,6 @@ param vmSize string = 'Standard_D2s_v3'
 @description('Admin username')
 param adminUsername string = 'demousr'
 
-@description('Admin password')
-@secure()
 param adminPassword string = 'Password@123'
 
 var networkInterfaceName = 'nic'
