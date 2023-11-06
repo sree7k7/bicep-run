@@ -33,6 +33,13 @@ az deployment group create --resource-group ResourceGroupName --template-file ma
 az deployment sub create -f ./bicep/main.bicep -l westeurope --parameters ./bicep/parameters/applicationRules.parameters.json ./bicep/parameters/bastion.parameters.json ./bicep/parameters/hubGlobal.parameters.json ./bicep/parameters/*
 ```
 
+```
+az deployment sub create -f main.bicep -l westeurope --parameters *.parameters.json
+```
+
+```
+az deployment sub create -f ./bicep/main.bicep -l westeurope --parameters ./bicep/parameters/*.parameters.json
+```
 
 generate-params
 The generate-params command builds a parameters file from the given Bicep file, updates if there's an existing parameters file.
