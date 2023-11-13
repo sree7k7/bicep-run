@@ -35,6 +35,7 @@ az deployment sub create -f ./bicep/main.bicep -l westeurope --parameters ./bice
 
 ```
 az deployment sub create -f main.bicep -l westeurope --parameters *.parameters.json
+az deployment sub create --confirm-with-what-if -f main.bicep -l northeurope --parameters *.parameters.json
 ```
 
 ```
